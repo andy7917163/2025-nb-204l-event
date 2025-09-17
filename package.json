@@ -1,0 +1,39 @@
+{
+  "name": "liff-sharetarget-app",
+  "version": "1.0.0",
+  "description": "LIFF ShareTarget application with Docker + AWS App Runner",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "build": "docker build -t liff-sharetarget .",
+    "docker:run": "docker run -p 3000:3000 --env-file .env liff-sharetarget",
+    "docker:compose": "docker-compose up",
+    "test": "node test/test.js",
+    "create-table": "aws dynamodb create-table --cli-input-json file://dynamodb-table.json"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "aws-sdk": "^2.1490.0",
+    "axios": "^1.5.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "liff",
+    "line",
+    "sharetarget",
+    "aws",
+    "docker",
+    "express",
+    "dynamodb"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

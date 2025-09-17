@@ -1,0 +1,104 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: LIFF ShareTarget Application
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod]
+
+  MaacApiUrl:
+    Type: String
+    Description: MAAC Open API URL
+    Default: "https://api.maac.example.com"
+
+  MaacApiKey:
+    Type: String
+    Description: MAAC API Key
+    NoEcho: true
+
+
+Globals:
+  Function:
+    Timeout: 30
+    Runtime: nodejs18.x
+    Environment:
+      Variables:
+        MAAC_API_URL: !Ref MaacApiUrl
+        MAAC_API_KEY: !Ref MaacApiKey
+        DYNAMODB_TABLE: !Ref ShareRecordsTable
+
+Resources:
+  # DynamoDB Table
+  ShareRecordsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${AWS::StackName}-ShareRecords"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: N
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  # Lambda Function
+  ShareFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-shareHandler"
+      CodeUri: src/handlers/
+      Handler: shareHandler.handler
+      Events:
+        ShareApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ShareApi
+            Path: /api/share
+            Method: post
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ShareRecordsTable
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: "*"
+
+  # API Gateway
+  ShareApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub "${AWS::StackName}-api"
+      StageName: !Ref Environment
+      Cors:
+        AllowMethods: "'GET,POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+        MaxAge: "'600'"
+        AllowCredentials: false
+
+
+Outputs:
+  ApiUrl:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${ShareApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}"
+    Export:
+      Name: !Sub "${AWS::StackName}-ApiUrl"
+
+  DynamoDBTable:
+    Description: "DynamoDB table name"
+    Value: !Ref ShareRecordsTable
+    Export:
+      Name: !Sub "${AWS::StackName}-TableName"

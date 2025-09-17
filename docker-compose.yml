@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "3002:3000"
+    environment:
+      - NODE_ENV=development
+      - AWS_REGION=ap-northeast-1
+      - AWS_SDK_LOAD_CONFIG=1
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - DYNAMODB_TABLE=ShareRecords
+      - MAAC_API_URL=https://api.cresclab.com/openapi/v1/direct_message/push/
+      - MAAC_API_KEY=iW2avIGc26d906bC3TfGRctPcAYAb/PuSZOLAkDatFo=
+      - LIFF_ID=2000772393-DwZavEvB
+    volumes:
+      - ./public:/app/public:ro
+      - ./server.js:/app/server.js:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # 可選：本地 DynamoDB (用於完全離線開發)
+  dynamodb-local:
+    image: amazon/dynamodb-local:latest
+    ports:
+      - "8000:8000"
+    command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-inMemory"]
+    profiles: ["local-db"]

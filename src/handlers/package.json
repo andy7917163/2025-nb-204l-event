@@ -1,0 +1,11 @@
+{
+  "name": "liff-sharetarget-handlers",
+  "version": "1.0.0",
+  "description": "Lambda handlers for LIFF ShareTarget",
+  "main": "shareHandler.js",
+  "dependencies": {
+    "aws-sdk": "^2.1490.0",
+    "axios": "^1.5.0",
+    "uuid": "^9.0.1"
+  }
+}

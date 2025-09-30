@@ -24,15 +24,15 @@ const {
 const TEMPLATE_MAPPING = {
   success: {
     "SWA": 134941,
-    "SWB": 134943,
-    "SWC": 134944,
-    "SWD": 134945
+    "KAB": 134943,
+    "SWD": 134944,
+    "KAA": 134945
   },
   limit: {
     "SWA": 134990,
-    "SWB": 134991,
-    "SWC": 134993,
-    "SWD": 134994
+    "KAB": 134991,
+    "SWD": 134993,
+    "KAA": 134994
   }
 };
 

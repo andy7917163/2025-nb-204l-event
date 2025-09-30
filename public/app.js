@@ -6,9 +6,9 @@ class LiffShareTarget {
         // 圖片 URL 映射
         this.imageUrlMap = {
             'SWA': 'https://lineevent.s3.ap-northeast-1.amazonaws.com/NewbalanceEvent/U204LSWA_share.png',
-            'KAB': 'https://lineevent.s3.ap-northeast-1.amazonaws.com/NewbalanceEvent/U204LSWD_share.png',
-            'SWD': 'https://lineevent.s3.ap-northeast-1.amazonaws.com/NewbalanceEvent/U471KAA_share.png',
-            'KAA': 'https://lineevent.s3.ap-northeast-1.amazonaws.com/NewbalanceEvent/U471KAB_share.png'
+            'KAB': 'https://lineevent.s3.ap-northeast-1.amazonaws.com/NewbalanceEvent/U471KAB_share.png',
+            'SWD': 'https://lineevent.s3.ap-northeast-1.amazonaws.com/NewbalanceEvent/U204LSWD_share.png',
+            'KAA': 'https://lineevent.s3.ap-northeast-1.amazonaws.com/NewbalanceEvent/U471KAA_share.png',
         };
 
         // 文字內容映射
@@ -45,6 +45,7 @@ class LiffShareTarget {
             const textContent = this.textContentMap[item];
             contentMap[item] = {
                 type: 'flex',
+                altText: ``,
                 contents: {
                     type: "bubble",
                     hero: {
@@ -162,35 +163,50 @@ class LiffShareTarget {
 
     async executeShareTargetPicker(userId, item, shareContent, displayName) {
         try {
-            console.log('Executing ShareTargetPicker for:', item, shareContent);
+            console.log('Executing ShareTargetPicker for:', item);
+
+            // 定義訊息內容
+            const messageText = `${displayName} 把這份心情花語送給你\n讓你的每一步都能像花一樣盛放💐\n\n即日起至 10/19，分享喜歡的心情花語圖，就能獲得抽獎機會！\n新款 NB 204L 鞋履等你來抽✨\n👇🏻一起分享～願你的日常因NB而多一點浪漫🌹`;
+
+            // 動態設定 Flex Message altText
+            const shareContentWithAltText = {
+                ...shareContent,
+                altText: messageText
+            };
+
+            console.log('📋 Flex Message JSON:', JSON.stringify(shareContentWithAltText, null, 2));
 
             // 使用 LIFF ShareTargetPicker API
-            const res = await liff.shareTargetPicker(
+            const res = liff.shareTargetPicker(
                 [
                     {
                         type: 'text',
-                        text: `${displayName} 把這份心情花語送給你\n讓你的每一步都能像花一樣盛放💐\n\n即日起至 10/19，分享喜歡的心情花語圖，就能獲得抽獎機會！\n新款 NB 204L 鞋履等你來抽✨\n👇🏻一起分享～願你的日常因NB而多一點浪漫🌹`
+                        text: messageText
                     },
-                    shareContent,
+                    shareContentWithAltText,
                 ],
                 {
                     isMultiple: true,
                 }
-            );
+            ).then((res) => {
+                if (res) {
+                    // succeeded in sending a message through TargetPicker
+                    console.log(`✅ ShareTargetPicker 成功: [${res.status}] Message sent!`);
 
-            if (res) {
-                // succeeded in sending a message through TargetPicker
-                console.log(`✅ ShareTargetPicker 成功: [${res.status}] Message sent!`);
+                    // 分享成功，發送請求到後端記錄
+                    this.sendShareRequest(userId, item);
 
-                // 分享成功，發送請求到後端記錄
-                await this.sendShareRequest(userId, item);
-
-            } else {
-                // sending message canceled
-                console.log("⚠️ TargetPicker was closed!");
-                console.log('🔴 分享已取消');
-                this.closeApp();
-            }
+                } else {
+                    // sending message canceled
+                    console.log("⚠️ TargetPicker was closed!");
+                    console.log('🔴 分享已取消');
+                    this.closeApp();
+                }
+            })
+            .catch((error) => {
+                // something went wrong before sending a message
+                console.log("something wrong happen", error.message);
+            });
 
         } catch (error) {
             // something went wrong before sending a message

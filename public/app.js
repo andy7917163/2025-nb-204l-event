@@ -104,7 +104,7 @@ class LiffShareTarget {
 
             // Initialize LIFF
             await liff.init({
-                liffId: '2000109710-rB1KXDBD' // Update this with your actual LIFF ID
+                liffId: '1655995729-V0BrK6gq' // Update this with your actual LIFF ID
             });
 
             if (!liff.isLoggedIn()) {

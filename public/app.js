@@ -85,7 +85,7 @@ class LiffShareTarget {
                                 action: {
                                     type: "uri",
                                     label: "分享心情花語",
-                                    uri: "https://maac.io/4FTeT"
+                                    uri: "https://maac.io/4I4tT"
                                 },
                                 style: "link",
                                 color: "#3366CC"

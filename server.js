@@ -105,7 +105,7 @@ app.post('/api/share', async (req, res) => {
     console.log('Share record saved:', shareRecord);
 
     // 根據分享次數和項目類型選擇 template
-    const isWithinLimit = shareCount < 4; // 0,1,2,3 = within limit, 4+ = exceeded
+    const isWithinLimit = shareCount < 3; // 0,1,2,3 = within limit, 4+ = exceeded
     const templateType = isWithinLimit ? 'success' : 'limit';
     const templateId = getTemplateId(item, templateType);
     const message = isWithinLimit ? '分享成功！' : '已達分享上限，但已記錄您的分享';

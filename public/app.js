@@ -3,27 +3,99 @@ class LiffShareTarget {
     constructor() {
         this.apiUrl = '/api/share';  // Same origin, no CORS needed
 
-        // 分享內容對應表
-        this.shareContentMap = {
+        // 圖片 URL 映射
+        this.imageUrlMap = {
+            'SWA': 'https://lineevent.s3.ap-northeast-1.amazonaws.com/NewbalanceEvent/U204LSWA_share.png',
+            'KAB': 'https://lineevent.s3.ap-northeast-1.amazonaws.com/NewbalanceEvent/U204LSWD_share.png',
+            'SWD': 'https://lineevent.s3.ap-northeast-1.amazonaws.com/NewbalanceEvent/U471KAA_share.png',
+            'KAA': 'https://lineevent.s3.ap-northeast-1.amazonaws.com/NewbalanceEvent/U471KAB_share.png'
+        };
+
+        // 文字內容映射
+        this.textContentMap = {
             'SWA': {
-                type: 'text',
-                text: 'Hello, World! 這是 SWA 項目的分享內容'
+                title: 'NB 204L 精緻優雅系列',
+                description: '質感薄底設計，讓你走得輕盈，也收穫專屬的好心情。'
             },
-            'SWB': {
-                type: 'text',
-                text: 'Hello, World! 這是 SWB 項目的分享內容'
-            },
-            'SWC': {
-                type: 'text',
-                text: 'Hello, World! 這是 SWC 項目的分享內容'
+            'KAB': {
+                title: 'NB 471 律動自在系',
+                description: '再忙也要留點空白，穿上 471，把回家的路走成最自在的風景。'
             },
             'SWD': {
-                type: 'text',
-                text: 'Hello, World! 這是 SWD 項目的分享內容'
+                title: 'NB 204L 精緻優雅系列',
+                description: '細膩的質感氛圍，讓每一步都充滿儀式感，輕鬆綻放優雅。'
+            },
+            'KAA': {
+                title: 'NB 471 律動自在系列',
+                description: '穿上 471 釋放輕盈腳感，帶你走得率性，把煩惱一併丟棄。'
             }
         };
 
+        // 分享內容對應表
+        this.shareContentMap = this.generateShareContentMap();
+
         this.init();
+    }
+
+    // 生成 Flex Message 內容
+    generateShareContentMap() {
+        const contentMap = {};
+
+        Object.keys(this.imageUrlMap).forEach(item => {
+            const textContent = this.textContentMap[item];
+            contentMap[item] = {
+                type: 'flex',
+                contents: {
+                    type: "bubble",
+                    hero: {
+                        type: "image",
+                        url: this.imageUrlMap[item],
+                        size: "full",
+                        aspectRatio: "1:1.35",
+                        aspectMode: "cover"
+                    },
+                    body: {
+                        type: "box",
+                        layout: "vertical",
+                        contents: [
+                            {
+                                type: "text",
+                                text: textContent.title,
+                                weight: "bold",
+                                size: "md",
+                                wrap: true
+                            },
+                            {
+                                type: "text",
+                                text: textContent.description,
+                                size: "sm",
+                                color: "#666666",
+                                wrap: true
+                            }
+                        ],
+                        spacing: "sm"
+                    },
+                    footer: {
+                        type: "box",
+                        layout: "vertical",
+                        contents: [
+                            {
+                                type: "button",
+                                action: {
+                                    type: "uri",
+                                    label: "分享心情花語",
+                                    uri: "https://maac.io/4FTeT"
+                                },
+                                style: "link",
+                                color: "#3366CC"
+                            }
+                        ]
+                    }
+                }
+            };
+        });
+
+        return contentMap;
     }
 
     async init() {
@@ -55,6 +127,7 @@ class LiffShareTarget {
             // Get user profile
             const profile = await liff.getProfile();
             const userId = profile.userId;
+            const displayName = profile.displayName;
             console.log('User profile:', profile);
 
             // 取得 URL 參數中的 item
@@ -78,7 +151,7 @@ class LiffShareTarget {
             });
 
             // 執行 LIFF ShareTargetPicker
-            await this.executeShareTargetPicker(userId, item, shareContent);
+            await this.executeShareTargetPicker(userId, item, shareContent, displayName);
 
         } catch (error) {
             console.error('❌ HandleShareTarget error:', error);
@@ -87,7 +160,7 @@ class LiffShareTarget {
         }
     }
 
-    async executeShareTargetPicker(userId, item, shareContent) {
+    async executeShareTargetPicker(userId, item, shareContent, displayName) {
         try {
             console.log('Executing ShareTargetPicker for:', item, shareContent);
 
@@ -95,9 +168,10 @@ class LiffShareTarget {
             const res = await liff.shareTargetPicker(
                 [
                     {
-                        type: shareContent.type,
-                        text: shareContent.text,
+                        type: 'text',
+                        text: `${displayName} 把這份心情花語送給你\n讓你的每一步都能像花一樣盛放💐\n\n即日起至 10/19，分享喜歡的心情花語圖，就能獲得抽獎機會！\n新款 NB 204L 鞋履等你來抽✨\n👇🏻一起分享～願你的日常因NB而多一點浪漫🌹`
                     },
+                    shareContent,
                 ],
                 {
                     isMultiple: true,
